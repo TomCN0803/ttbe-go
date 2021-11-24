@@ -33,6 +33,7 @@ type Cttbe struct {
 
 // AudClue The auditing clue.
 type AudClue struct {
+	index    uint64
 	AC1, AC2 *bn.G1
 }
 
@@ -117,7 +118,7 @@ func ShareDec(tpk TPK, tsk TSK, t *big.Int, cttbe *Cttbe) (*AudClue, error) {
 
 	ac1 := new(bn.G1).ScalarMult(cttbe.C1, tsk.U)
 	ac2 := new(bn.G1).ScalarMult(cttbe.C2, tsk.V)
-	audClue := &AudClue{ac1, ac2}
+	audClue := &AudClue{tsk.index, ac1, ac2}
 
 	return audClue, nil
 }
@@ -134,11 +135,27 @@ func VerAudClue(tpk TPK, tvk TVK, tag *big.Int, cttbe *Cttbe, clue *AudClue) boo
 	return b1 && b2
 }
 
-// invMod find the inverse of a modulo p
-func invMod(a, p *big.Int) *big.Int {
-	return new(big.Int).Exp(a, new(big.Int).Sub(p, big.NewInt(2)), p)
+func Combine(audClues []*AudClue, cttbe *Cttbe) (*bn.G1, error) {
+	den := new(bn.G1)
+	indxs := make([]*big.Int, 0, len(audClues))
+	for _, ac := range audClues {
+		indxs = append(indxs, big.NewInt(int64(ac.index)))
+	}
+
+	for _, ac := range audClues {
+		indexBig := big.NewInt(int64(ac.index))
+		lagcoeff := shamir.LagCoeff(indexBig, indxs, bn.Order)
+		c1 := new(bn.G1).ScalarMult(ac.AC1, lagcoeff)
+		c2 := new(bn.G1).ScalarMult(ac.AC2, lagcoeff)
+		d := new(bn.G1).Add(c1, c2)
+		den.Add(den, d)
+	}
+	den.Neg(den)
+
+	return new(bn.G1).Add(cttbe.C3, den), nil
 }
 
-func Combine(tpk TPK, tvk []TVK, audClues []*AudClue, tag *big.Int, cttbe *Cttbe) (*bn.G1, error) {
-
+// invMod find the inverse of a mod p
+func invMod(a, p *big.Int) *big.Int {
+	return new(big.Int).Exp(a, new(big.Int).Sub(p, big.NewInt(2)), p)
 }

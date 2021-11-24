@@ -49,3 +49,46 @@ func GenShares(coeffs []*big.Int, n uint64, p *big.Int) []Share {
 
 	return shares
 }
+
+// Reconstruct the secret with given shares.
+func Reconstruct(shares []Share, p *big.Int) *big.Int {
+	res := big.NewInt(0)
+	xs := make([]*big.Int, 0, len(shares))
+
+	for _, share := range shares {
+		xs = append(xs, share.X)
+	}
+
+	for _, share := range shares {
+		x, y := share.X, share.Y
+		lag := LagCoeff(x, xs, p)
+		lag.Mul(lag, y)
+		res.Add(res, lag)
+	}
+
+	return res
+}
+
+// LagCoeff get the lagrange coefficient of share x.
+func LagCoeff(xk *big.Int, xs []*big.Int, p *big.Int) *big.Int {
+	res := big.NewInt(1)
+	for _, x := range xs {
+		if xk.CmpAbs(x) != 0 {
+			den := new(big.Int).Sub(xk, x)
+			den.Mod(den, p)
+			denInv := invMod(den, p)
+			res.Mul(res, denInv)
+			res.Mod(res, p)
+		}
+	}
+
+	return res
+}
+
+// invMod find the inverse of a mod p
+func invMod(a, p *big.Int) *big.Int {
+	res := new(big.Int).Exp(a, new(big.Int).Sub(p, big.NewInt(2)), p)
+	res.Mod(res, p)
+
+	return res
+}
