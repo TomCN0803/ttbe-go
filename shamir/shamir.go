@@ -63,7 +63,9 @@ func Reconstruct(shares []Share, p *big.Int) *big.Int {
 		x, y := share.X, share.Y
 		lag := LagCoeff(x, xs, p)
 		lag.Mul(lag, y)
+		lag.Mod(lag, p)
 		res.Add(res, lag)
+		res.Mod(res, p)
 	}
 
 	return res
@@ -74,10 +76,11 @@ func LagCoeff(xk *big.Int, xs []*big.Int, p *big.Int) *big.Int {
 	res := big.NewInt(1)
 	for _, x := range xs {
 		if xk.CmpAbs(x) != 0 {
-			den := new(big.Int).Sub(xk, x)
+			den := new(big.Int).Sub(x, xk)
 			den.Mod(den, p)
 			denInv := invMod(den, p)
-			res.Mul(res, denInv)
+			item := new(big.Int).Mul(x, denInv)
+			res.Mul(res, item)
 			res.Mod(res, p)
 		}
 	}

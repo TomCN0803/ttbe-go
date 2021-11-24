@@ -19,3 +19,16 @@ func TestGenRandPoly(t *testing.T) {
 		fmt.Println(c)
 	}
 }
+
+func TestAll(test *testing.T) {
+	p := big.NewInt(7)
+	t := uint64(3)
+	s := big.NewInt(6)
+	coeffs := GenRandPoly(t, s, p)
+	shares := GenShares(coeffs, 5, p)
+
+	recShares := []Share{shares[0], shares[2], shares[4]}
+	sRec := Reconstruct(recShares, p)
+
+	fmt.Println(sRec)
+}
