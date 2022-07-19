@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"math/big"
 
-	"github.com/TomCN0803/ttbe-go/shamir"
+	"github.com/TomCN0803/ttbego/shamir"
 	bn "golang.org/x/crypto/bn256"
 )
 

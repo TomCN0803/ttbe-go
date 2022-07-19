@@ -1,4 +1,4 @@
-module github.com/TomCN0803/ttbe-go
+module github.com/TomCN0803/ttbego
 
 go 1.17
 
