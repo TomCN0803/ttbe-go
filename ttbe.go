@@ -3,8 +3,8 @@ package ttbe
 import (
 	"crypto/rand"
 	"math/big"
-	"ttbe-go/shamir"
 
+	"github.com/TomCN0803/ttbe-go/shamir"
 	bn "golang.org/x/crypto/bn256"
 )
 
